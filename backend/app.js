@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const pinoHttp = require('pino-http');
@@ -15,12 +16,10 @@ app.use(pinoHttp({ logger }));
 app.use('/api/auth', authRoutes);
 app.use('/api/notes', noteRoutes);
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'API route not found' });
 });
 
-// Global error handler
 app.use(errorHandler);
 
 module.exports = app;

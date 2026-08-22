@@ -2,17 +2,17 @@ const request = require('supertest');
 const { expect } = require('chai');
 const app = require('../app');
 
-describe('Authentication API Suite', () => {
-  it('should return 400 if registration fields are missing', async () => {
+describe('Authentication & Note Route Tests', () => {
+  it('should reject registration if fields are missing or whitespace', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'incomplete@example.com' });
+      .send({ name: '   ', email: '', password: '' });
 
     expect(res.status).to.equal(400);
     expect(res.body.success).to.equal(false);
   });
 
-  it('should return 400 if login credentials are missing', async () => {
+  it('should reject login with empty credentials', async () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({});
@@ -21,8 +21,19 @@ describe('Authentication API Suite', () => {
     expect(res.body.success).to.equal(false);
   });
 
-  it('should return 401 for unauthorized access to notes endpoint', async () => {
-    const res = await request(app).get('/api/notes');
+  it('should return 401 when accessing notes without Bearer authorization', async () => {
+    const res = await request(app)
+      .get('/api/notes')
+      .set('Authorization', 'Basic invalidtokenformat');
+
+    expect(res.status).to.equal(401);
+    expect(res.body.success).to.equal(false);
+  });
+
+  it('should return 401 when token is expired or invalid', async () => {
+    const res = await request(app)
+      .get('/api/notes')
+      .set('Authorization', 'Bearer bad.token.here');
 
     expect(res.status).to.equal(401);
     expect(res.body.success).to.equal(false);
