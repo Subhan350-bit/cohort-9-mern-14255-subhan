@@ -9,20 +9,20 @@ export const Dashboard = () => {
   const [notes, setNotes] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [errorFeedback, setErrorFeedback] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
 
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      setErrorFeedback('');
+      setErrorMessage('');
       const res = await API.get('/notes?limit=100');
       if (res.data?.success) {
         setNotes(res.data.data || []);
       }
     } catch (err) {
-      setErrorFeedback('Failed to load notes. Please refresh or try again.');
+      setErrorMessage('Failed to fetch notes. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -45,21 +45,21 @@ export const Dashboard = () => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
 
     try {
-      setErrorFeedback('');
+      setErrorMessage('');
       const res = await API.delete(`/notes/${id}`);
       if (res.data?.success) {
         setNotes((prevNotes) => prevNotes.filter((n) => n.id !== id));
       } else {
-        setErrorFeedback(res.data?.message || 'Could not delete note.');
+        setErrorMessage(res.data?.message || 'Failed to delete note.');
       }
     } catch (err) {
-      setErrorFeedback(err.response?.data?.message || 'Failed to delete note from server.');
+      setErrorMessage(err.response?.data?.message || 'Failed to delete note from server.');
     }
   };
 
-  const sanitizeHtml = (dirtyHtml) => {
-    return DOMPurify.sanitize(dirtyHtml || '', {
-      USE_PROFILES: { html: true },
+  const sanitizeContent = (htmlContent) => {
+    return DOMPurify.sanitize(htmlContent || '', {
+      USE_PROFILES: { html: true }
     });
   };
 
@@ -91,14 +91,13 @@ export const Dashboard = () => {
           </button>
         </div>
 
-        {errorFeedback && (
+        {errorMessage && (
           <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex justify-between items-center">
-            <span>{errorFeedback}</span>
-            <button onClick={() => setErrorFeedback('')} className="text-rose-500 hover:text-rose-700">✕</button>
+            <span>{errorMessage}</span>
+            <button onClick={() => setErrorMessage('')} className="text-rose-500 hover:text-rose-700">✕</button>
           </div>
         )}
 
-        {/* Search Bar */}
         <div className="relative mb-6">
           <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-400" />
           <input
@@ -110,7 +109,6 @@ export const Dashboard = () => {
           />
         </div>
 
-        {/* Notes Grid */}
         {loading ? (
           <div className="text-center py-16 text-slate-500">Loading notes...</div>
         ) : filteredNotes.length === 0 ? (
@@ -134,7 +132,7 @@ export const Dashboard = () => {
                   </h3>
                   <div
                     className="text-slate-600 text-sm line-clamp-4 prose prose-sm"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeContent(note.content) }}
                   />
                 </div>
 

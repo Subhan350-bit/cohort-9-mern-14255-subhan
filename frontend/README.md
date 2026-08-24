@@ -1,24 +1,16 @@
 # Notes App - Frontend
 
-Responsive React.js client for the 10Pearls Shine Cohort 9 MERN Notes Application.
+Full-stack responsive React application built for the 10Pearls Shine Cohort 9 program.
 
-## Overview
-This application provides secure user authentication, a note management dashboard, and a rich text editor powered by React-Quill and sanitized using DOMPurify.
+## Features
+- **Authentication**: Sign up and login with JWT support.
+- **Note Management**: Create, edit, search, and delete user-specific notes.
+- **Rich Text Editor**: Powered by React-Quill-New.
+- **XSS Protection**: HTML sanitization using DOMPurify.
+- **Testing**: Automated unit tests using Vitest and React Testing Library.
 
-## Prerequisites
-- **Node.js**: v18 or higher
-- **Backend API Service**: Running at `http://localhost:5000/api` (or configured via `.env` file with `VITE_API_BASE_URL`)
-
-## Technology Stack
-- **Framework**: React.js with Vite
-- **Styling**: Tailwind CSS & PostCSS
-- **Rich Text Editor**: React-Quill-New
-- **Security**: DOMPurify for HTML sanitization
-- **HTTP Client**: Axios with interceptors
-- **Testing**: Vitest and React Testing Library
-
-## Getting Started
-
-1. **Install dependencies:**
+## Prerequisites & Setup
+1. Ensure the Node.js backend is running at `http://localhost:5000/api`.
+2. Install dependencies:
    ```bash
    npm install

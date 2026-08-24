@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: res.data?.message || 'Login failed' };
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to connect to authentication server';
+      const message = error.response?.data?.message || 'Failed to connect to server';
       return { success: false, message };
     }
   };
