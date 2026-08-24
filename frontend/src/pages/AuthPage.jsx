@@ -19,15 +19,28 @@ export const AuthPage = () => {
 
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
-        navigate('/');
+        const result = await login(formData.email, formData.password);
+        if (result?.success) {
+          navigate('/');
+        } else {
+          setError(result?.message || 'Invalid email or password.');
+        }
       } else {
-        await register(formData.name, formData.email, formData.password);
-        await login(formData.email, formData.password);
-        navigate('/');
+        const regResult = await register(formData.name, formData.email, formData.password);
+        if (!regResult?.success) {
+          setError(regResult?.message || 'Registration failed.');
+          return;
+        }
+
+        const loginResult = await login(formData.email, formData.password);
+        if (loginResult?.success) {
+          navigate('/');
+        } else {
+          setError(loginResult?.message || 'Registration succeeded, but automatic login failed.');
+        }
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
+      setError(err.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }

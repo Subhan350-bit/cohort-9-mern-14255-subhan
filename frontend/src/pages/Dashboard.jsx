@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import API from '../api/axios';
 import { Navbar } from '../components/Navbar';
 import { NoteEditorModal } from '../components/NoteEditorModal';
@@ -8,18 +9,20 @@ export const Dashboard = () => {
   const [notes, setNotes] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [errorFeedback, setErrorFeedback] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
 
   const fetchNotes = async () => {
     try {
       setLoading(true);
+      setErrorFeedback('');
       const res = await API.get('/notes?limit=100');
-      if (res.data.success) {
-        setNotes(res.data.data);
+      if (res.data?.success) {
+        setNotes(res.data.data || []);
       }
     } catch (err) {
-      console.error('Failed to fetch notes', err);
+      setErrorFeedback('Failed to load notes. Please refresh or try again.');
     } finally {
       setLoading(false);
     }
@@ -35,19 +38,34 @@ export const Dashboard = () => {
     } else {
       await API.post('/notes', noteData);
     }
-    fetchNotes();
+    await fetchNotes();
   };
 
   const handleDeleteNote = async (id) => {
-    if (window.confirm('Are you sure you want to delete this note?')) {
-      await API.delete(`/notes/${id}`);
-      setNotes((prevNotes) => prevNotes.filter((n) => n.id !== id));
+    if (!window.confirm('Are you sure you want to delete this note?')) return;
+
+    try {
+      setErrorFeedback('');
+      const res = await API.delete(`/notes/${id}`);
+      if (res.data?.success) {
+        setNotes((prevNotes) => prevNotes.filter((n) => n.id !== id));
+      } else {
+        setErrorFeedback(res.data?.message || 'Could not delete note.');
+      }
+    } catch (err) {
+      setErrorFeedback(err.response?.data?.message || 'Failed to delete note from server.');
     }
   };
 
+  const sanitizeHtml = (dirtyHtml) => {
+    return DOMPurify.sanitize(dirtyHtml || '', {
+      USE_PROFILES: { html: true },
+    });
+  };
+
   const filteredNotes = notes.filter((n) =>
-    n.title.toLowerCase().includes(search.toLowerCase()) ||
-    n.content.toLowerCase().includes(search.toLowerCase())
+    (n.title || '').toLowerCase().includes(search.toLowerCase()) ||
+    (n.content || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -58,7 +76,7 @@ export const Dashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">My Notes</h1>
-            <p className="text-sm text-slate-500">Manage, organize, and capture your notes seamlessly.</p>
+            <p className="text-sm text-slate-500">Manage, organize, and capture your notes securely.</p>
           </div>
 
           <button
@@ -72,6 +90,13 @@ export const Dashboard = () => {
             Create Note
           </button>
         </div>
+
+        {errorFeedback && (
+          <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex justify-between items-center">
+            <span>{errorFeedback}</span>
+            <button onClick={() => setErrorFeedback('')} className="text-rose-500 hover:text-rose-700">✕</button>
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="relative mb-6">
@@ -109,7 +134,7 @@ export const Dashboard = () => {
                   </h3>
                   <div
                     className="text-slate-600 text-sm line-clamp-4 prose prose-sm"
-                    dangerouslySetInnerHTML={{ __html: note.content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
                   />
                 </div>
 

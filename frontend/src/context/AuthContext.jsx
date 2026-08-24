@@ -22,18 +22,29 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await API.post('/auth/login', { email, password });
-    if (res.data.success) {
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      setUser(res.data.user);
+    try {
+      const res = await API.post('/auth/login', { email, password });
+      if (res.data?.success && res.data?.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        setUser(res.data.user);
+        return res.data;
+      }
+      return { success: false, message: res.data?.message || 'Login failed' };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to connect to authentication server';
+      return { success: false, message };
     }
-    return res.data;
   };
 
   const register = async (name, email, password) => {
-    const res = await API.post('/auth/register', { name, email, password });
-    return res.data;
+    try {
+      const res = await API.post('/auth/register', { name, email, password });
+      return res.data;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Registration failed';
+      return { success: false, message };
+    }
   };
 
   const logout = () => {
