@@ -105,13 +105,12 @@ export const Dashboard = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes by title or content..."
-            className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm shadow-xs"
-          />
-        </div>
-
-        {loading ? (
-          <div className="text-center py-16 text-slate-500">Loading notes...</div>
-        ) : filteredNotes.length === 0 ? (
+       <div
+  className="text-slate-600 text-sm line-clamp-4 prose prose-sm"
+  dangerouslySetInnerHTML={{
+    __html: DOMPurify.sanitize(note.content || '', { USE_PROFILES: { html: true } })
+  }}
+/>
           <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
             <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-semibold text-slate-800">No notes found</h3>
