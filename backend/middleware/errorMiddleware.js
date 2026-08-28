@@ -1,21 +1,30 @@
 const logger = require('../config/logger');
 
+/**
+ * Express global error handler middleware
+ * @type {import('express').ErrorRequestHandler}
+ */
 const errorHandler = (err, req, res, next) => {
-  logger.error({
-    message: err.message,
-    stack: err.stack,
-    method: req.method,
-    url: req.originalUrl
-  }, 'Unhandled Exception Caught by Middleware');
+  logger.error(err);
 
-  const statusCode = err.statusCode && Number.isInteger(err.statusCode) ? err.statusCode : 500;
-  const message = statusCode >= 500 ? 'Internal Server Error' : (err.message || 'Request failed');
+  const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : (err.statusCode || 500);
+  const message = err.message || 'Internal Server Error';
 
   res.status(statusCode).json({
     success: false,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 };
 
-module.exports = errorHandler;
+/**
+ * Not Found (404) route middleware
+ * @type {import('express').RequestHandler}
+ */
+const notFound = (req, res, next) => {
+  const error = new Error(`Not Found - ${req.originalUrl}`);
+  res.status(404);
+  next(error);
+};
+
+module.exports = { errorHandler, notFound };

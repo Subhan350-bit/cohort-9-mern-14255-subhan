@@ -1,22 +1,16 @@
 const mysql = require('mysql2/promise');
 const logger = require('./logger');
 
-const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_NAME'];
-const missingVars = requiredEnvVars.filter((key) => !process.env[key]);
-
-if (missingVars.length > 0) {
-  logger.fatal(`Missing required database environment variables: ${missingVars.join(', ')}`);
-  throw new Error(`Database configuration incomplete. Missing: ${missingVars.join(', ')}`);
-}
-
+/** @type {import('mysql2/promise').Pool} */
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME,
+  database: process.env.DB_NAME || 'notes_app',
+  port: Number(process.env.DB_PORT) || 3306,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
 });
 
 pool.getConnection()
@@ -25,7 +19,7 @@ pool.getConnection()
     conn.release();
   })
   .catch((err) => {
-    logger.error({ err: err.message }, 'Failed to establish initial MySQL connection');
+    logger.error({ err }, 'MySQL Connection Failed');
   });
 
 module.exports = pool;

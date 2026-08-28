@@ -1,20 +1,17 @@
 const pino = require('pino');
 
-const isProduction = process.env.NODE_ENV === 'production';
-
-const logger = pino({
+/** @type {import('pino').LoggerOptions} */
+const pinoOptions = {
   level: process.env.LOG_LEVEL || 'info',
-  timestamp: pino.stdTimeFunctions.isoTime,
-  transport: isProduction
-    ? undefined
-    : {
+  transport: process.env.NODE_ENV !== 'production'
+    ? {
         target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'SYS:standard',
-          ignore: 'pid,hostname'
-        }
+        options: { colorize: true },
       }
-});
+    : undefined,
+};
+
+/** @type {import('pino').Logger} */
+const logger = pino(pinoOptions);
 
 module.exports = logger;

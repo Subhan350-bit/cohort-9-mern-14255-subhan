@@ -1,15 +1,13 @@
 require('dotenv').config();
+const app = require('./app');
 const logger = require('./config/logger');
 
-if (!process.env.JWT_SECRET) {
-  logger.fatal('JWT_SECRET environment variable is missing.');
-  process.exit(1);
-}
+/** @type {number} */
+const PORT = Number(process.env.PORT) || 5000;
 
-const app = require('./app');
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
+/** @type {import('http').Server} */
+const server = app.listen(PORT, () => {
   logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
+
+module.exports = server;
